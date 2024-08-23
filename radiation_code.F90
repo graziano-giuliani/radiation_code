@@ -337,6 +337,9 @@ program radiation_code
 
   call deallocate_radtype(rt)
   call deallocate_aerosol( )
+  deallocate(dum)
+  deallocate(am,bm)
+  deallocate(ai,bi)
 
   contains
 
