@@ -31,7 +31,7 @@ module mod_constants
   integer , parameter :: ik8 = int64
   integer , parameter :: rk4  = real32
   integer , parameter :: rk8  = real64
-  integer , parameter :: rkx = rk4
+  integer , parameter :: rkx = rk8
 
   logical , parameter :: dolw = .true.
   logical , parameter :: dosw = .true.
