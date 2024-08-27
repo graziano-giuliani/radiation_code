@@ -77,7 +77,7 @@ program radiation_code
 
   ! This must be for MPI par....
   n1 = 271000
-  n2 = 271080
+  n2 = 272000
 
   call allocate_radtype(rt,n1,n2)
   call allocate_aerosol(n1,n2)
