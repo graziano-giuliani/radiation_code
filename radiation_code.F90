@@ -55,7 +55,9 @@ program radiation_code
   real(rkx) :: kabsi , kabsl , kabs , arg , cldemis
   real(rk8) :: eccen , obliq , mvelp , obliqr , lambm0 , mvelpp , calday
   real(rk8) :: declin , eccf
+  integer(ik8) :: tstart , tstop , trate
 
+  call system_clock(count_rate=trate)
   call initghg(cmip6_base,'SSP370')
   call read_solarforcing(cmip6_base)
 
@@ -168,7 +170,6 @@ program radiation_code
         rt%iyear = iyear
         rt%eccf = eccf
         rt%calday = calday
-
 
         ! RegCM has a defualt of 18 hours here...
         rt%labsem = (mod(istep,3) == 0)
@@ -290,8 +291,13 @@ program radiation_code
           end if
         end do
 
+        call system_clock(tstart)
         call radctl(rt,iyear,imonth)
+        call system_clock(tstop)
 
+        print *, '########################################################'
+        print *, 'Elapsed time : ',real(tstop-tstart,rk8)/real(trate,rk8), &
+          ' s'
         print *, '########################################################'
         print *, 'TOA SW incoming flux (W/m2) : ', rt%solin(n1)
         print *, 'TOA LW incoming flux (W/m2) : ', rt%lwin(n1)
