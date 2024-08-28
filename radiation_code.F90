@@ -211,7 +211,7 @@ program radiation_code
               (rt%q(k,n)/pfwsat(rt%t(k,n),rt%pmid(k,n))) ) )
             rt%pmln(k,n) = log(rt%pmid(k,n))
           end do
-          rt%pint(1,n) = 1.0e-10_rkx
+          rt%pint(1,n) = 0.5_rkx ! Should be zero
           rt%piln(1,n) = log(rt%pint(1,n))
           do k = 2 , nlev+1
             rt%pint(k,n) = ai(k)+ bi(k)*rt%ps(n)
@@ -220,13 +220,15 @@ program radiation_code
           do k = 2 , nlev
             rt%cld(k,n) = dum(k-1,n) + dum(k,n) - (dum(k-1,n)*dum(k,n))
           end do
+          do k = 1 , nlev
+            rt%dz(k,n) = rovg*(rt%t(k,n)+(1.0_rkx+ep1*rt%q(k,n))) * &
+               log(rt%pint(k+1,n)/rt%pint(k,n))
+          end do
           rt%zq(nlev+1,n) = rt%ht(n)
           do k = nlev, 1 , -1
-            rt%zq(k,n) = rt%zq(k+1,n) + rovg*rt%t(k,n) * &
-                  log(rt%pint(k+1,n)/rt%pint(k,n))
+            rt%zq(k,n) = rt%zq(k+1,n) + rt%dz(k,n)
           end do
           do k = 1 , nlev
-            rt%dz(k,n) = rt%zq(k,n) - rt%zq(k+1,n)
             rt%za(k,n) = 0.5_rkx * (rt%zq(k,n)+rt%zq(k+1,n))
             ! If some cloud present
             if ( dum(k,n) > 0.001_rkx ) then
@@ -271,6 +273,7 @@ program radiation_code
             end if
           end do
         end do
+
         call read_field_2d(e5_adirsw,'aluvp',rt%adirsw,0,ith)
         call read_field_2d(e5_adifsw,'aluvd',rt%adifsw,0,ith)
         call read_field_2d(e5_adirlw,'alnip',rt%adirlw,0,ith)
