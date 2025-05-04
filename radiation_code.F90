@@ -20,6 +20,7 @@
 ! SOFTWARE.
 !
 program radiation_code
+  use, intrinsic :: iso_fortran_env
   use mod_constants
   use mod_dimensions
   use mod_rad_common
@@ -57,6 +58,9 @@ program radiation_code
   real(rk8) :: declin , eccf
   integer(ik8) :: tstart , tstop , trate
 
+  integer(ik4), dimension(24) :: ivars
+  integer(ik4) :: ncid , outrec = 1
+
   call system_clock(count_rate=trate)
   call initghg(cmip6_base,'SSP370')
   call read_solarforcing(cmip6_base)
@@ -77,7 +81,7 @@ program radiation_code
 
   ! This must be for MPI par....
   n1 = 271000
-  n2 = 272000
+  n2 = 271020
 
   call allocate_radtype(rt,n1,n2)
   call allocate_aerosol(n1,n2)
@@ -102,6 +106,10 @@ program radiation_code
 
   iyear = year_start
   istep = 0
+
+  call outfile('radiation_output.nc',ncid)
+
+  call write_static(ncid)
 
   do iyear = year_start , year_end
 
@@ -298,6 +306,9 @@ program radiation_code
         call radctl(rt,iyear,imonth)
         call system_clock(tstop)
 
+        call write_record(ncid,outrec)
+        outrec = outrec + 1
+
         print *, '########################################################'
         print *, 'Elapsed time : ',real(tstop-tstart,rk8)/real(trate,rk8), &
           ' s'
@@ -343,6 +354,8 @@ program radiation_code
       end do
     end do
   end do
+
+  call closefile(ncid)
 
   call deallocate_radtype(rt)
   call deallocate_aerosol( )
@@ -679,6 +692,258 @@ program radiation_code
     ! qs = ep2 * es / (p - (0.378_rkx * es))
     ! ws = qs * ( d_one - qs)
   end function pfwsat
+
+  subroutine outfile(outname,ncid)
+    use netcdf
+    implicit none
+    character(len=*) :: outname
+    integer, intent(out) :: ncid
+    integer ::  istat
+    integer :: idims(3), udims(3)
+
+    istat = nf90_create(outname,nf90_clobber,ncid)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_def_dim(ncid, 'point', n2-n1+1, idims(1))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_def_dim(ncid, 'level', nlev, idims(2))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_def_var(ncid,'lat',nf90_double,idims(1:1),ivars(1))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(1),'standard_name','latitude')
+    istat = nf90_put_att(ncid,ivars(1),'long_name','Latitude')
+    istat = nf90_put_att(ncid,ivars(1),'units','degrees_north')
+    istat = nf90_def_var(ncid,'lon',nf90_double,idims(1:1),ivars(2))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(2),'standard_name','longitude')
+    istat = nf90_put_att(ncid,ivars(2),'long_name','Longitude')
+    istat = nf90_put_att(ncid,ivars(2),'units','degrees_east')
+    istat = nf90_def_var(ncid,'time',nf90_double,idims(3:3),ivars(3))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(3),'units', &
+      'seconds since 1950-01-01 00:00:00')
+    istat = nf90_def_var(ncid,'topography',nf90_real,idims(1:1),ivars(4))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(4),'standard_name','surface_elevation')
+    istat = nf90_put_att(ncid,ivars(4),'long_name','Surface Elevation')
+    istat = nf90_put_att(ncid,ivars(4),'units','m')
+    istat = nf90_def_var(ncid,'mask',nf90_int,idims(1:1),ivars(5))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(5),'standard_name','land_binary_mask')
+    istat = nf90_put_att(ncid,ivars(5),'long_name','Land Ocean mask')
+    istat = nf90_put_att(ncid,ivars(5),'units','1')
+
+    udims(1) = idims(3)
+    istat = nf90_def_var(ncid,'solar',nf90_real,udims(1:1),ivars(6))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(6),'standard_name', 'solar_constant')
+    istat = nf90_put_att(ncid,ivars(6),'long_name', 'Solar constant')
+    istat = nf90_put_att(ncid,ivars(6),'units','W m-2')
+    udims(1) = idims(1)
+    udims(2) = idims(3)
+    istat = nf90_def_var(ncid,'dirswalb',nf90_real,udims(1:2),ivars(7))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(7),'standard_name','surface_albedo')
+    istat = nf90_put_att(ncid,ivars(7),'long_name','Short wave direct albedo')
+    istat = nf90_put_att(ncid,ivars(7),'units','1')
+    istat = nf90_def_var(ncid,'difswalb',nf90_real,udims(1:2),ivars(8))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(8),'standard_name','surface_albedo')
+    istat = nf90_put_att(ncid,ivars(8),'long_name','Short wave diffuse albedo')
+    istat = nf90_put_att(ncid,ivars(8),'units','1')
+    istat = nf90_def_var(ncid,'dirlwalb',nf90_real,udims(1:2),ivars(9))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(9),'standard_name','surface_albedo')
+    istat = nf90_put_att(ncid,ivars(9),'long_name','Long wave direct albedo')
+    istat = nf90_put_att(ncid,ivars(9),'units','1')
+    istat = nf90_def_var(ncid,'diflwalb',nf90_real,udims(1:2),ivars(10))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(10),'standard_name','surface_albedo')
+    istat = nf90_put_att(ncid,ivars(10),'long_name','Long wave diffuse albedo')
+    istat = nf90_put_att(ncid,ivars(10),'units','1')
+    istat = nf90_def_var(ncid,'ts',nf90_real,udims(1:2),ivars(11))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(11),'standard_name', &
+      'surface_brightness_temperature')
+    istat = nf90_put_att(ncid,ivars(11),'long_name', &
+      'Surface Brightness Temeprature')
+    istat = nf90_put_att(ncid,ivars(11),'units','K')
+    istat = nf90_def_var(ncid,'ps',nf90_real,udims(1:2),ivars(12))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ivars(12),'standard_name', 'surface_pressure')
+    istat = nf90_put_att(ncid,ivars(12),'long_name', 'Surface Pressure')
+    istat = nf90_put_att(ncid,ivars(12),'units','Pa')
+
+    istat = nf90_enddef(ncid)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+  end subroutine outfile
+
+  subroutine write_static(ncid)
+    use netcdf
+    implicit none
+    integer, intent(in) :: ncid
+    integer :: istat
+    istat = nf90_put_var(ncid,ivars(1),rt%dlat)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ivars(2),rt%dlon)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ivars(4),rt%ht)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ivars(5),rt%ioro)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_sync(ncid)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+  end subroutine write_static
+
+  subroutine write_record(ncid,irec)
+    use netcdf
+    implicit none
+    integer, intent(in) :: ncid
+    integer, intent(in) :: irec
+    integer :: istat
+    integer :: istart_t(1) , istart(3)
+    integer :: icount_t(1) , icount(3)
+    real, save :: time(1) = 0.0
+    real :: rtmp(1)
+    time(1) = time(1) + irec * 3600 * 6.0
+    istart_t = irec
+    icount_t = 1
+    istat = nf90_put_var(ncid,ivars(3),time,istart_t,icount_t)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    rtmp = rt%scon * 0.001
+    istat = nf90_put_var(ncid,ivars(6),rtmp,istart_t,icount_t)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istart(1) = 1
+    istart(2) = irec
+    icount(1) = n2-n1+1
+    icount(2) = irec
+    istat = nf90_put_var(ncid,ivars(7),rt%adirsw,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ivars(8),rt%adifsw,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ivars(9),rt%adirlw,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ivars(10),rt%adiflw,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ivars(11),rt%ts,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ivars(12),rt%ps,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+
+    istart(1) = 1
+    istart(2) = 1
+    istart(3) = irec
+    icount(1) = n2-n1+1
+    icount(2) = nlev
+    icount(3) = 1
+    istat = nf90_sync(ncid)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+  end subroutine write_record
+
+  subroutine closefile(ncid)
+    use netcdf
+    integer, intent(in) :: ncid
+    integer :: istat
+    istat = nf90_close(ncid)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+  end subroutine closefile
 
 end program radiation_code
 
