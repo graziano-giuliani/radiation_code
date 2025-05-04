@@ -1,8 +1,8 @@
 
 FC = gfortran
-FCFLAGS = -I. `nf-config --fflags` -O3
-#FCFLAGS = -I. `nf-config --fflags` -ffpe-trap=invalid,zero,overflow \
-#          -O0 -g -fcheck=all -fbacktrace
+#FCFLAGS = -I. `nf-config --fflags` -O3
+FCFLAGS = -I. `nf-config --fflags` -ffpe-trap=zero \
+          -O0 -g -fcheck=all -fbacktrace
 LIBS = `nf-config --flibs`
 
 .SUFFIXES: .F90 .f90 .o
