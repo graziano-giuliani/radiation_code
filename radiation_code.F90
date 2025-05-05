@@ -32,7 +32,7 @@ program radiation_code
   implicit none
 
   integer :: year_start = 1950
-  integer :: year_end   = 2024
+  integer :: year_end   = 1950
 
   character(len=*) , parameter :: e5_base = 'data'
   character(len=*) , parameter :: cmip6_base = 'data'
@@ -120,7 +120,7 @@ program radiation_code
 
     calday = 0.0_rk8
 
-    do imonth = 1 , 12
+    do imonth = 1 , 1
 
       rt%scon = solar_irradiance(iyear,imonth) * 1000.0_rkx ! cgs
       print *, 'Solar constant in CGS: ',rt%scon
@@ -310,6 +310,7 @@ program radiation_code
         call system_clock(tstop)
 
         call write_record_infile(ncid_in,outrec)
+        call write_record_outfile(ncid_out,outrec)
         outrec = outrec + 1
 
         print *, '########################################################'
@@ -1056,6 +1057,250 @@ program radiation_code
     istat = nf90_put_att(ncid,ovars(5),'standard_name','land_binary_mask')
     istat = nf90_put_att(ncid,ovars(5),'long_name','Land Ocean mask')
     istat = nf90_put_att(ncid,ovars(5),'units','1')
+    udims(1) = idims(4)
+    istat = nf90_def_var(ncid,'eccen',nf90_real,udims(1:1),ovars(6))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(6),'standard_name', 'orbit_eccentricity')
+    istat = nf90_put_att(ncid,ovars(6),'long_name', 'Orbit eccentricity')
+    istat = nf90_put_att(ncid,ovars(6),'units','1')
+    udims(1) = idims(1)
+    udims(2) = idims(4)
+    istat = nf90_def_var(ncid,'flns',nf90_real,udims(1:2),ovars(7))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(7),'standard_name', &
+      'surface_net_shortwave_radiation')
+    istat = nf90_put_att(ncid,ovars(7),'long_name', &
+      'Surface net shortwave radiation')
+    istat = nf90_put_att(ncid,ovars(7),'units','W m-2')
+    istat = nf90_def_var(ncid,'flnsc',nf90_real,udims(1:2),ovars(8))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(8),'standard_name', &
+      'surface_net_clearsky_shortwave_radiation')
+    istat = nf90_put_att(ncid,ovars(8),'long_name', &
+      'Surface net clearsky shortwave radiation')
+    istat = nf90_put_att(ncid,ovars(8),'units','W m-2')
+    istat = nf90_def_var(ncid,'flnt',nf90_real,udims(1:2),ovars(9))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(9),'standard_name', &
+      'toa_net_longwave_radiation')
+    istat = nf90_put_att(ncid,ovars(9),'long_name', &
+      'Top of atmosphere net longwave radiation')
+    istat = nf90_put_att(ncid,ovars(9),'units','W m-2')
+    istat = nf90_def_var(ncid,'lwout',nf90_real,udims(1:2),ovars(10))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(10),'standard_name', &
+      'toa_outgoing_longwave_radiation')
+    istat = nf90_put_att(ncid,ovars(10),'long_name', &
+      'Top of atmosphere outgoing longwave radiation')
+    istat = nf90_put_att(ncid,ovars(10),'units','W m-2')
+    istat = nf90_def_var(ncid,'lwin',nf90_real,udims(1:2),ovars(11))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(11),'standard_name', &
+      'toa_incoming_longwave_radiation')
+    istat = nf90_put_att(ncid,ovars(11),'long_name', &
+      'Top of atmosphere incoming longwave radiation')
+    istat = nf90_put_att(ncid,ovars(11),'units','W m-2')
+    istat = nf90_def_var(ncid,'flntc',nf90_real,udims(1:2),ovars(12))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(12),'standard_name', &
+      'toa_clearsky_net_longwave_radiation')
+    istat = nf90_put_att(ncid,ovars(12),'long_name', &
+      'Top of atmosphere clearsky net longwave radiation')
+    istat = nf90_put_att(ncid,ovars(12),'units','W m-2')
+    istat = nf90_def_var(ncid,'flwds',nf90_real,udims(1:2),ovars(13))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(13),'standard_name', &
+      'surface_downwelling_longwave_radiation')
+    istat = nf90_put_att(ncid,ovars(13),'long_name', &
+      'Surface Downwelling longwave radiation')
+    istat = nf90_put_att(ncid,ovars(13),'units','W m-2')
+    istat = nf90_def_var(ncid,'fsds',nf90_real,udims(1:2),ovars(14))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(14),'standard_name', &
+      'surface_downwelling_shortwave_radiation')
+    istat = nf90_put_att(ncid,ovars(14),'long_name', &
+      'Surface Downwelling shortwave radiation')
+    istat = nf90_put_att(ncid,ovars(14),'units','W m-2')
+    istat = nf90_def_var(ncid,'fsnirt',nf90_real,udims(1:2),ovars(15))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(15),'standard_name', &
+      'toa_absorbed_longwave_radiation')
+    istat = nf90_put_att(ncid,ovars(15),'long_name', &
+      'Top of atmosphere absorbed longwave radiation')
+    istat = nf90_put_att(ncid,ovars(15),'units','W m-2')
+    istat = nf90_def_var(ncid,'fsnirtsq',nf90_real,udims(1:2),ovars(16))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(16),'standard_name', &
+      'toa_absorbed_nearir_longwave_radiation')
+    istat = nf90_put_att(ncid,ovars(16),'long_name', &
+      'Top of atmosphere near infrared absorbed longwave radiation')
+    istat = nf90_put_att(ncid,ovars(16),'units','W m-2')
+    istat = nf90_def_var(ncid,'fsnrtc',nf90_real,udims(1:2),ovars(17))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(17),'standard_name', &
+      'toa_absorbed_clearsky_longwave_radiation')
+    istat = nf90_put_att(ncid,ovars(17),'long_name', &
+      'Top of atmosphere clearsky absorbed longwave radiation')
+    istat = nf90_put_att(ncid,ovars(17),'units','W m-2')
+    istat = nf90_def_var(ncid,'fsns',nf90_real,udims(1:2),ovars(18))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(18),'standard_name', &
+      'surface_net_shortwave_radiation')
+    istat = nf90_put_att(ncid,ovars(18),'long_name', &
+      'Surface net shortwave radiation')
+    istat = nf90_put_att(ncid,ovars(18),'units','W m-2')
+    istat = nf90_def_var(ncid,'fsnsc',nf90_real,udims(1:2),ovars(19))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(19),'standard_name', &
+      'surface_net_clearsky_shortwave_radiation')
+    istat = nf90_put_att(ncid,ovars(19),'long_name', &
+      'Surface net clearsky shortwave radiation')
+    istat = nf90_put_att(ncid,ovars(19),'units','W m-2')
+    istat = nf90_def_var(ncid,'fsnt',nf90_real,udims(1:2),ovars(20))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(20),'standard_name', &
+      'toa_net_shortwave_radiation')
+    istat = nf90_put_att(ncid,ovars(20),'long_name', &
+      'Top of atmosphere net shortwave radiation')
+    istat = nf90_put_att(ncid,ovars(20),'units','W m-2')
+    istat = nf90_def_var(ncid,'fsntc',nf90_real,udims(1:2),ovars(21))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(21),'standard_name', &
+      'toa_net_clearsky_shortwave_radiation')
+    istat = nf90_put_att(ncid,ovars(21),'long_name', &
+      'Top of atmosphere clearsky net shortwave radiation')
+    istat = nf90_put_att(ncid,ovars(21),'units','W m-2')
+    istat = nf90_def_var(ncid,'solin',nf90_real,udims(1:2),ovars(22))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(22),'standard_name', &
+      'toa_incoming_shortwave_radiation')
+    istat = nf90_put_att(ncid,ovars(22),'long_name', &
+      'Top of atmosphere incoming shortwave radiation')
+    istat = nf90_put_att(ncid,ovars(22),'units','W m-2')
+    istat = nf90_def_var(ncid,'solout',nf90_real,udims(1:2),ovars(23))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(23),'standard_name', &
+      'toa_outgoing_shortwave_radiation')
+    istat = nf90_put_att(ncid,ovars(23),'long_name', &
+      'Top of atmosphere outgoing shortwave radiation')
+    istat = nf90_put_att(ncid,ovars(23),'units','W m-2')
+    istat = nf90_def_var(ncid,'soll',nf90_real,udims(1:2),ovars(24))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(24),'standard_name', &
+      'surface_incoming_direct_longwave_radiation')
+    istat = nf90_put_att(ncid,ovars(24),'long_name', &
+      'Surface incoming direct longwave radiation')
+    istat = nf90_put_att(ncid,ovars(24),'units','W m-2')
+    istat = nf90_def_var(ncid,'solld',nf90_real,udims(1:2),ovars(25))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(25),'standard_name', &
+      'surface_incoming_diffuse_longwave_radiation')
+    istat = nf90_put_att(ncid,ovars(25),'long_name', &
+      'Surface incoming diffuse longwave radiation')
+    istat = nf90_put_att(ncid,ovars(25),'units','W m-2')
+    istat = nf90_def_var(ncid,'sols',nf90_real,udims(1:2),ovars(26))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(26),'standard_name', &
+      'surface_incoming_direct_shortwave_radiation')
+    istat = nf90_put_att(ncid,ovars(26),'long_name', &
+      'Surface incoming direct_shortwave radiation')
+    istat = nf90_put_att(ncid,ovars(26),'units','W m-2')
+    istat = nf90_def_var(ncid,'solsd',nf90_real,udims(1:2),ovars(27))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(27),'standard_name', &
+      'surface_incoming_diffuse_longwave_radiation')
+    istat = nf90_put_att(ncid,ovars(27),'long_name', &
+      'Surface incoming diffuse_longwave radiation')
+    istat = nf90_put_att(ncid,ovars(27),'units','W m-2')
+    udims(1) = idims(2)
+    udims(2) = idims(1)
+    udims(3) = idims(4)
+    istat = nf90_def_var(ncid,'qrl',nf90_real,udims(1:3),ovars(28))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(28),'standard_name', &
+      'longwave_heating_rate')
+    istat = nf90_put_att(ncid,ovars(28),'long_name', &
+      'Longwave heating rate')
+    istat = nf90_put_att(ncid,ovars(28),'units','K s-1')
+    istat = nf90_def_var(ncid,'qrs',nf90_real,udims(1:3),ovars(29))
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_att(ncid,ovars(29),'standard_name', &
+      'shortwave_heating_rate')
+    istat = nf90_put_att(ncid,ovars(29),'long_name', &
+      'Shortwave heating rate')
+    istat = nf90_put_att(ncid,ovars(29),'units','K s-1')
 
     istat = nf90_enddef(ncid)
     if ( istat /= nf90_noerr ) then
@@ -1101,22 +1346,22 @@ program radiation_code
     implicit none
     integer, intent(in) :: ncid
     integer :: istat
-    istat = nf90_put_var(ncid,ivars(1),rt%dlat)
+    istat = nf90_put_var(ncid,ovars(1),rt%dlat)
     if ( istat /= nf90_noerr ) then
       write(error_unit, *) nf90_strerror(istat), __LINE__
       stop
     end if
-    istat = nf90_put_var(ncid,ivars(2),rt%dlon)
+    istat = nf90_put_var(ncid,ovars(2),rt%dlon)
     if ( istat /= nf90_noerr ) then
       write(error_unit, *) nf90_strerror(istat), __LINE__
       stop
     end if
-    istat = nf90_put_var(ncid,ivars(4),rt%ht)
+    istat = nf90_put_var(ncid,ovars(4),rt%ht)
     if ( istat /= nf90_noerr ) then
       write(error_unit, *) nf90_strerror(istat), __LINE__
       stop
     end if
-    istat = nf90_put_var(ncid,ivars(5),rt%ioro)
+    istat = nf90_put_var(ncid,ovars(5),rt%ioro)
     if ( istat /= nf90_noerr ) then
       write(error_unit, *) nf90_strerror(istat), __LINE__
       stop
@@ -1282,6 +1527,164 @@ program radiation_code
       stop
     end if
   end subroutine write_record_infile
+
+  subroutine write_record_outfile(ncid,irec)
+    use netcdf
+    implicit none
+    integer, intent(in) :: ncid
+    integer, intent(in) :: irec
+    integer :: istat
+    integer :: istart_t(1) , istart(3)
+    integer :: icount_t(1) , icount(3)
+    real, save :: time(1) = 0.0
+    real :: rtmp(1)
+    time(1) = time(1) + irec * 3600 * 6.0
+    istart_t = irec
+    icount_t = 1
+    istat = nf90_put_var(ncid,ivars(3),time,istart_t,icount_t)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    rtmp = rt%eccf
+    istat = nf90_put_var(ncid,ovars(6),rtmp,istart_t,icount_t)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istart(1) = 1
+    istart(2) = irec
+    icount(1) = n2-n1+1
+    icount(2) = 1
+    istat = nf90_put_var(ncid,ovars(7),rt%flns,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(8),rt%flnsc,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(9),rt%flnt,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(10),rt%lwout,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(11),rt%lwin,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(12),rt%flntc,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(13),rt%flwds,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(14),rt%fsds,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(15),rt%fsnirt,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(16),rt%fsnirtsq,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(17),rt%fsnrtc,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(18),rt%fsns,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(19),rt%fsnsc,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(20),rt%fsnt,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(21),rt%fsntc,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(22),rt%solin,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(23),rt%solout,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(24),rt%soll,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(25),rt%solld,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(26),rt%sols,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(27),rt%solsd,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+
+    istart(1) = 1
+    istart(2) = 1
+    istart(3) = irec
+    icount(1) = nlev
+    icount(2) = n2-n1+1
+    icount(3) = 1
+    istat = nf90_put_var(ncid,ovars(28),rt%qrl,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+    istat = nf90_put_var(ncid,ovars(29),rt%qrs,istart,icount)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+
+    istat = nf90_sync(ncid)
+    if ( istat /= nf90_noerr ) then
+      write(error_unit, *) nf90_strerror(istat), __LINE__
+      stop
+    end if
+  end subroutine write_record_outfile
 
   subroutine closefile(ncid)
     use netcdf
