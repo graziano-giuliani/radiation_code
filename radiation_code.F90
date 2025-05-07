@@ -359,6 +359,9 @@ program radiation_code
     end do
   end do
 
+  print *, 'Data in input files is over....'
+  print *, 'So long, and thanks for all the fish.'
+
   call closefile(ncid_in)
   call closefile(ncid_out)
 
